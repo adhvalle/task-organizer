@@ -5,6 +5,8 @@ import { Store } from 'store';
 
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Subject } from 'rxjs/Subject';
+
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/switchMap';
@@ -34,6 +36,14 @@ export interface ScheduleList {
 export class ScheduleService {
 
   private date$ = new BehaviorSubject(new Date());
+  private section$ = new Subject();
+
+  selected$ = this.section$
+    .do((next: any) => this.store.set('selected', next));
+
+  list$ = this.section$
+    .map((value: any) => this.store.value[value.type])
+    .do((next: any) => this.store.set('list', next));
 
   schedule$: Observable<ScheduleItem[]> = this.date$
     .do((next: any) => this.store.set('date', next))
@@ -80,6 +90,10 @@ export class ScheduleService {
     this.date$.next(date);
   }
 
+  selectSection(event: any) {
+    this.section$.next(event);
+  }
+
   private getSchedule(startAt: number, endAt: number) {
     return this.db.list(`schedule/${this.uid}`, {
       query: {
@@ -89,5 +103,4 @@ export class ScheduleService {
       }
     });
   }
-
 }
